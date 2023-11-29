@@ -22,4 +22,3 @@ def publish_messages():
         print(future.result())
         
     print(f"Published messages to {topic_path}.")
-
