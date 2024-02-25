@@ -96,6 +96,8 @@ class Sensor():
 
 def annoy_me(msg, stop):
     while (True):
+        msg['measure_timestamp'] = time.time()
+        msg['measure'] = 'Hi Chachi'
         print(msg)
         time.sleep(5)
         if stop():
