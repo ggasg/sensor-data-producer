@@ -8,7 +8,8 @@ class Sensor():
     def __init__(self, bus):
         # Perform initial calibrations
         data = bus.read_i2c_block_data(0x77, 0xAA, 22)
-        
+        self.bus = bus
+
         self.AC1 = data[0] * 256 + data[1]
         if self.AC1 > 32767: self.AC1 -= 65535
         
@@ -58,8 +59,8 @@ class Sensor():
         # Extra calibrations
         X1 = (temp - self.AC6) * self.AC5 / 32768.0
         X2 = (self.MC * 2048.0) / (X1 + self.MD)
-        B5 = X1 + X2
-        cTemp = ((B5 + 8.0) / 16.0) / 10.0
+        self.B5 = X1 + X2
+        cTemp = ((self.B5 + 8.0) / 16.0) / 10.0
         fTemp = cTemp * 1.8 + 32
         return (cTemp, fTemp)
     # Read Pressure
@@ -92,15 +93,3 @@ class Sensor():
         altitude = 44330 * (1 - ((pressure / 1013.25) ** 0.1903))
 
         return (pressure, altitude)
-
-
-def annoy_me(msg, stop):
-    while (True):
-        msg['measure_timestamp'] = time.time()
-        msg['measure'] = 'Hi Chachi'
-        print(msg)
-        time.sleep(5)
-        if stop():
-            print('Ok now leaving')
-            break
-    print('Thread signing off')
