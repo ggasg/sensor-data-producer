@@ -1,6 +1,5 @@
 from paho.mqtt import client as mqtt
 import time
-import datetime
 import os
 from dotenv import load_dotenv
 
@@ -14,7 +13,7 @@ class MQTTClient:
             print('Chachi messed up just this time')
 
     def generate_timestamp_element(self):
-        return f"\"timestamp\":\"{str(datetime.datetime.now())}\""
+        return f"\"timestamp\":\"{time.time_ns()}\""
 
     def __init__(self) -> None:
         load_dotenv()

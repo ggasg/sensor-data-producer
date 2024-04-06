@@ -1,29 +1,16 @@
 import sys
 from threading import Thread
-from bmp180 import Sensor
 from smbus2 import SMBus
+from bmp180 import Sensor
 import time
 import json
 from client_connect import MQTTClient
 
-# def annoy_me(sensor, stop):
-#     while (True):
-#         msg = {}
-#         msg['measure_timestamp'] = time.time()
-#         msg['pressure'] = sensor.get_pressure()
-#         msg['temperature'] = sensor.get_temperature()
-#         time.sleep(5)
-#         if stop():
-#             print('Ok now leaving')
-#             break
-#     print('Thread signing off')
-
-def read_in_thread(mqtt, stop):
+def read_in_thread(mqtt, sensor, stop):
     while True:
-        reading = {}
-        reading["temp"] = 10.30
-        reading["pressure"] = 1.2
-        mqtt.publish_to_central(json.dumps(reading))
+        str_data = sensor.read_sensor_data()
+        mqtt.publish_to_central(json.dumps(str_data))
+        # Wait 5 seconds to allow input or finish current thread
         time.sleep(5)
         if stop():
             print('Ok now leaving')
@@ -33,10 +20,10 @@ def read_in_thread(mqtt, stop):
 
 def main():
     stop_threads = False
-    # bus = SMBus(1)
-    # reading = Sensor(bus)
+    bus = SMBus(1)
+    sensor = Sensor(bus)
     mqtt_client = MQTTClient()
-    process = Thread(target=read_in_thread, args=(mqtt_client, lambda: stop_threads))
+    process = Thread(target=read_in_thread, args=(mqtt_client, sensor, lambda: stop_threads))
     try:
         print('At any time, submit q to exit program, CTRL-C to abort')
         process.start()
