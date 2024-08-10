@@ -5,16 +5,18 @@ https://www.theengineeringprojects.com/2023/06/how-to-interface-bmp180-air-press
 import time
 
 class Sensor():
+
+    BMP_ADDR = 119
+
     def __init__(self, bus):
         self.bus = bus
-        # TODO - This fails. Must replace with proper device id
-        # self.device_id = bus.read_i2c_block_data(0x77, 0xD0, 2)
-        self.device_id = "HARDCODED"
+        data = bus.read_i2c_block_data(Sensor.BMP_ADDR, 0xD0, 2)
+        self.chip_id = int.from_bytes(data)
+        # TODO - Add sensor geo location
 
     def read_sensor_data(self):
-        # BMP180 address, 0x77(119)
         # Read data back from 0xAA(170), 22 bytes
-        data = self.bus.read_i2c_block_data(0x77, 0xAA, 22)
+        data = self.bus.read_i2c_block_data(Sensor.BMP_ADDR, 0xAA, 22)
         # Convert the data
         AC1 = data[0] * 256 + data[1]
         if AC1 > 32767 : AC1 -= 65535
@@ -48,29 +50,26 @@ class Sensor():
         
         time.sleep(0.5)
 
-        # BMP180 address, 0x77(119)
         # Select measurement control register, 0xF4(244)
         # 0x2E(46) Enable temperature measurement
-        self.bus.write_byte_data(0x77, 0xF4, 0x2E)
+        self.bus.write_byte_data(Sensor.BMP_ADDR, 0xF4, 0x2E)
         time.sleep(0.5)
 
         # Read data back from 0xF6(246), 2 bytes
         # temp MSB, temp LSB
-        data = self.bus.read_i2c_block_data(0x77, 0xF6, 2)
+        data = self.bus.read_i2c_block_data(Sensor.BMP_ADDR, 0xF6, 2)
         # Convert the data
         temp = data[0] * 256 + data[1]
 
-        # BMP180 address, 0x77(119)
         # Select measurement control register, 0xF4(244)
         # 0x74(116) Enable pressure measurement, OSS = 1
-        self.bus.write_byte_data(0x77, 0xF4, 0x74)
+        self.bus.write_byte_data(Sensor.BMP_ADDR, 0xF4, 0x74)
 
         time.sleep(0.5)
 
-        # BMP180 address, 0x77(119)
         # Read data back from 0xF6(246), 3 bytes
         # pres MSB1, pres MSB, pres LSB
-        data = self.bus.read_i2c_block_data(0x77, 0xF6, 3)
+        data = self.bus.read_i2c_block_data(Sensor.BMP_ADDR, 0xF6, 3)
         # Convert the data
         pres = ((data[0] * 65536) + (data[1] * 256) + data[2]) / 128
         
@@ -105,12 +104,4 @@ class Sensor():
         # Calculate Altitude
         altitude = 44330 * (1 - ((pressure / 1013.25) ** 0.1903))
 
-        return({'altitude': altitude, 'pressure': pressure, 'temperature': [cTemp, fTemp]})
-
-        # print("Altitude : %.2f m" %altitude)
-
-        # print("Pressure : %.2f hPa " %pressure)
-
-        # print("Temperature in Celsius : %.2f C" %cTemp)
-
-        # print("Temperature in Fahrenheit : %.2f F" %fTemp)
+        return({'chip_id': self.chip_id, 'altitude': altitude, 'pressure': pressure, 'temperature': [cTemp, fTemp]})
