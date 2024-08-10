@@ -1,14 +1,17 @@
 import sys
 from threading import Thread
 from smbus2 import SMBus
+import utils as u
 from bmp180 import Sensor
 import time
 import json
 from client_connect import MQTTClient
 
-def read_in_thread(mqtt, sensor, stop):
+def read_in_thread(mqtt, sensor, location, stop):
     while True:
-        mqtt.publish_to_central(json.dumps(sensor.read_sensor_data()))
+        payload = sensor.read_sensor_data()
+        payload['location'] = location
+        mqtt.publish_to_central(json.dumps(payload))
         # Wait 5 seconds to allow input or finish current thread
         time.sleep(5)
         if stop():
@@ -21,8 +24,10 @@ def main():
     stop_threads = False
     bus = SMBus(1)
     sensor = Sensor(bus)
+    # We get the location only at application startup time
+    location_info = u.get_location()
     mqtt_client = MQTTClient()
-    process = Thread(target=read_in_thread, args=(mqtt_client, sensor, lambda: stop_threads))
+    process = Thread(target=read_in_thread, args=(mqtt_client, sensor, location_info, lambda: stop_threads))
     try:
         print('At any time, submit q to exit program, CTRL-C to abort')
         process.start()

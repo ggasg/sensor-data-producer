@@ -12,7 +12,6 @@ class Sensor():
         self.bus = bus
         data = bus.read_i2c_block_data(Sensor.BMP_ADDR, 0xD0, 2)
         self.chip_id = int.from_bytes(data)
-        # TODO - Add sensor geo location
 
     def read_sensor_data(self):
         # Read data back from 0xAA(170), 22 bytes
