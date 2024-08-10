@@ -7,6 +7,9 @@ import time
 class Sensor():
     def __init__(self, bus):
         self.bus = bus
+        # TODO - This fails. Must replace with proper device id
+        # self.device_id = bus.read_i2c_block_data(0x77, 0xD0, 2)
+        self.device_id = "HARDCODED"
 
     def read_sensor_data(self):
         # BMP180 address, 0x77(119)

@@ -8,8 +8,7 @@ from client_connect import MQTTClient
 
 def read_in_thread(mqtt, sensor, stop):
     while True:
-        str_data = sensor.read_sensor_data()
-        mqtt.publish_to_central(json.dumps(str_data))
+        mqtt.publish_to_central(json.dumps(sensor.read_sensor_data()))
         # Wait 5 seconds to allow input or finish current thread
         time.sleep(5)
         if stop():
